@@ -61,6 +61,32 @@ class CustomReward(Wrapper):
                 reward -= 50
         return state, reward / 10., done, info
     
+    def reset(self):
+        self.curr_score = 0
+        return process_frame(self.env.reset())
     
-
-
+# speed up training with skip frames (reduce computation)
+class CustomSkipFrame(Wrapper):
+    def __init__(self, env, skip=4):
+        super(CustomSkipFrame, self).__init__(env)
+        self.observation_space = Box(low=0, high=255, shape=(4, 84, 84))
+        self.skip = skip
+    
+    def step(self, action):
+        total_reward = 0
+        states = []
+        state, reward, done, info = self.env.step(action)
+        for i in range(self.skip):
+            if not done:
+                state, reward, done, info = self.env.step(action)
+                total_reward += reward
+                states.append(state)
+            else:
+                states.append(state)
+        states = np.concatenate(states, 0)[None, :, :]
+        return states.astype(np.float32), reward, done, info
+    
+    def reset(self):
+        state = self.env.reset()
+        states = np.concatenate([state for _ in range(self.skip)], 0)[None, :, :, :]
+        return states.astype(np.float32)
