@@ -45,7 +45,7 @@ class CustomReward(Wrapper):
             self.monitor = None
     
     def step(self, action):
-        state, reqard, terminated, truncated, info = self.env.step(action)
+        state, reward, terminated, truncated, info = self.env.step(action)
         done = False
         if terminated or truncated:
             done = True
@@ -60,6 +60,7 @@ class CustomReward(Wrapper):
             else:
                 reward -= 50
         return state, reward / 10., done, info
-
+    
+    
 
 
