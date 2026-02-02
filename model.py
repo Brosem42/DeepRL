@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+#add actor critic model as policy network
 class ActorCritic(nn.Module):
     def __init__(self, num_inputs, num_actions):
         super(ActorCritic, self).__init__()
@@ -15,6 +16,7 @@ class ActorCritic(nn.Module):
         self.critic_linear = nn.Linear(512, 1)
         self._initialize_weights()
 
+#init model weights, biases, and reduce exploding gradients
     def initialize_weights(self):
         for module in self.modules():
             if isinstance(module, nn.Linear):
