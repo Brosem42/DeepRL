@@ -1,6 +1,6 @@
 # optimizer 
 import torch
-# global optimizer for shared memory 
+# global optimizer for shared memory with adaptation of Adam
 class GlobalAdam(torch.optim.Adam):
     def __init__(self, params, lr):
         super(GlobalAdam, self).__init__(params, lr=lr)
