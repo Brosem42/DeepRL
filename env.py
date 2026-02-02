@@ -3,11 +3,11 @@
 import gym_super_mario_bros
 import gym
 from gym.spaces import Box
-from gym.wrappers import Wrapper
+from gym import Wrapper
 from nes_py.wrappers import JoypadSpace
 from gym_super_mario_bros.actions import SIMPLE_MOVEMENT, COMPLEX_MOVEMENT, RIGHT_ONLY
-import numpy as np
 import cv2
+import numpy as np
 import subprocess as sp
 import os
 
@@ -90,3 +90,21 @@ class CustomSkipFrame(Wrapper):
         state = self.env.reset()
         states = np.concatenate([state for _ in range(self.skip)], 0)[None, :, :, :]
         return states.astype(np.float32)
+
+# create customized env for optimized training
+def create_train_env(world, stage, action_type, output_path=None):
+    env = gym.make("SuperMarioBros-{}-{}-v0".format(world, stage), apply_api_compatibility=True, render_mode="human")
+    if output_path:
+        monitor = Monitor(256, 240, output_path)
+    else:
+        monitor = None
+    if action_type == "right":
+        actions = RIGHT_ONLY
+    elif action_type == "simple":
+        actions = SIMPLE_MOVEMENT
+    else:
+        actions = COMPLEX_MOVEMENT
+    env = JoypadSpace(env, actions)
+    env = CustomReward(env, monitor)
+    env = CustomSkipFrame(env)
+    return env, env.observation_space, len(actions)
