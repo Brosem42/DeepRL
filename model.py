@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-#add actor critic model as policy network
+#define actor critic model--policy network
 class ActorCritic(nn.Module):
     def __init__(self, num_inputs, num_actions):
         super(ActorCritic, self).__init__()
@@ -12,11 +12,11 @@ class ActorCritic(nn.Module):
         self.conv2 = nn.Conv2d(32, 64, 3, stride=2, padding=1)
         self.conv3 = nn.Conv2d(32, 64, 3, stride=2, padding=1)
         self.conv4 = nn.Conv2d(32, 64, 3, stride=2, padding=1)
-        self.lstm = nn.LSTMCell(32 * 6 * 6, 512)
+        self.lstm = nn.LSTMCell(32 * 6 * 6, 512) #update of the hidden state in cell cx in LSTM
         self.critic_linear = nn.Linear(512, 1)
-        self._initialize_weights()
+        self._initialize_weights(512, num_actions)
 
-#init model weights, biases, and reduce exploding gradients
+#init model weights, use single feature extractor, biases, and reduce exploding gradients
     def initialize_weights(self):
         for module in self.modules():
             if isinstance(module, nn.Linear):
