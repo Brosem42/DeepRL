@@ -38,4 +38,44 @@ def get_args():
 
 #training environment 
 def train(opt):
+    torch.manual_seed(123)
+    if os.path.isdir(opt.log_path):
+        shutil.rmtree(opt.log_path)
+    os.makedirs(opt.log_path)
+    if not os.path.isdir(opt.saved_path):
+        os.makedirs(opt.saved_path)
+    mp = _mp.get_context('spawn')
+    env, num_states, num_actions = create_train_env(opt.world, opt.stage, opt.action_type)
+    global_model = ActorCritic(num_states, num_actions)
+    if opt.use_gpu:
+        global_model.cuda()
+    global_model.share_memory()
+    if opt.load_from_previous_stage:
+        if opt.stage == 1:
+            previous_world = opt.world - 1
+            previous_stage = 4
+        else:
+            previous_world = opt.world
+            previous_stage = opt.stage - 1
+        file_ = "{}/A3CSuperMarioBros_{}_{}".format(opt.saved_path, previous_world, previous_stage)
+        if os.path.isfile(file_):
+            global_model.load_state_dict(torch.load(file_))
+
+    optimizer = GlobalAdam(global_model.parameters(), lr=opt.lr)
+    processes = []
+    for index in range(opt.num_processes):
+        if index == 0:
+            process = mp.Process(target=local_train, args=(index, opt, global_model, optimizer, True))
+        else:
+            process = mp.Process(target=local_train, args=(index, opt, global_model, optimizer))
+        process.start()
+        processes.append(process)
+    process = mp.Process(target=local_test, args=(opt.num_processes, opt, global_model))
+    process.start()
+    processes.append(process)
+    for process in processes:
+        process.join()
     
+if __name__ == "__main__":
+    opt = get_args()
+    train(opt)
