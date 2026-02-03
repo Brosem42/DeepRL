@@ -153,7 +153,7 @@ def local_test(index, opt, global_model):
         env.render()
         actions.append(action)
 
-        if curr_step > opt.num_global_steps:
+        if curr_step > opt.num_global_steps or actions.count(actions[0]) == actions.maxlen:
             done = True
         if done:
             curr_step = 0
